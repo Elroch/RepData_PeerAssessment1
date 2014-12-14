@@ -5,21 +5,71 @@ output:
     keep_md: true
 ---
 
-
 ## Loading and preprocessing the data
+```{r, echo=TRUE}
+setwd("c://users/liam/documents/r/datascience/reproducible research")
+activity=data.frame(read.csv("activity.csv"))
+activity$date=as.POSIXct(activity$date)
 
+```
+## What is mean (and media) total number of steps taken per day?
+```{r, echo=TRUE}
+totals <-  tapply(activity$steps, activity$date, function(data) sum(data, na.rm=TRUE))
+par(mfrow=c(1,1))
+hist(totals, ylab="Total number of steps per day", xlab="Frequency", col="lightblue", n=10, main="Daily totals")
+```
 
+The mean of daily total number of steps is `r format(mean(totals), digits=5)`.
 
-## What is mean total number of steps taken per day?
-
-
+The median of daily total number of steps is `r format(median(totals), digits=5)`.
 
 ## What is the average daily activity pattern?
+```{r, echo=TRUE}
+daily.profile <- tapply(activity$steps, activity$interval, function(values) mean(values, na.rm=TRUE))
+plot(daily.profile, type="l", xlab="Time of day in 5 minute units", ylab="Average number of steps")
+```
 
+The time of day at which the maximum number of steps occurred (on average) was the `r which.max(daily.profile)`th 5 minute interval (out of 24*12). 
 
+The number of rows in the database with missing values is `r sum(is.na(activity$steps))`.
 
 ## Imputing missing values
 
+We choose to use the specialised function *impSeq* from the package *rrcovNA* to impute missing values and then repeat the calculation of mean and median daily steps. 
 
+```{r, echo=TRUE}
+library(rrcovNA)
+activity.imp <- data.frame(impSeq(data.frame(activity)))
+class(activity.imp)
+totals.imp <-  tapply(activity.imp$steps, activity.imp$date, function(data) sum(data, na.rm=TRUE))
+par(mfrow=c(1,1))
+hist(totals.imp, ylab="Imputed total number of steps per day", xlab="Frequency", col="lightblue", n=10, main="Imputed daily totals")
+```
+
+The mean daily total number of steps with imputed values is `r format(mean(totals.imp), digits=5)`.
+
+The median of daily total number of steps with imputed values is `r format( median(totals.imp), digits=5)`.
+
+The difference in the mean from the version deleting NA data is `r format(mean(totals.imp)-mean(totals, na.rm=T), digits=3)`.
+
+The difference in the median from the version deleting NA data is `r format(median(totals.imp)-median(totals, na.rm=T), digits=3)`.
 
 ## Are there differences in activity patterns between weekdays and weekends?
+```{r, echo=TRUE}
+library(lattice)
+#library(ggplot2)
+weekends = weekdays(as.POSIXlt(activity.imp$date, origin="1970-1-1")) == "Sunday" | weekdays(as.POSIXlt(activity.imp$date, origin="1970-1-1")) == "Saturday"
+weekend.char = (rep("", nrow(activity.imp)))
+weekend.char[weekends] = "weekend"
+weekend.char[!weekends] = "weekday"
+activity.imp$weekend = as.factor(weekend.char)
+weekday.profile <-  tapply(activity$steps[weekends], activity$interval[weekends], function(values) mean(values, na.rm=TRUE))
+weekend.profile <-  tapply(activity$steps[!weekends], activity$interval[!weekends], function(values) mean(values, na.rm=TRUE))
+panel.data = data.frame(daytype=c(rep("weekend", length(weekend.profile)), rep("weekday", length(weekday.profile))))
+panel.data = cbind(panel.data, steps=c(weekend.profile, weekday.profile))
+panel.data =cbind(panel.data, interval= activity$interval[1:(length(weekend.profile) + length(weekday.profile))])
+
+xyplot(steps ~ interval | daytype, data = panel.data, layout = c(1, 2), type="l", xlab="Interval", ylab="Number of steps")
+
+```
+
