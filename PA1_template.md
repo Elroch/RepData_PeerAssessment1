@@ -1,4 +1,9 @@
-# Reproducible Research: Peer Assessment 1
+---
+title: "Reproducible Research: Peer Assessment 1"
+output: 
+  html_document:
+    keep_md: true
+---
 
 ## Loading and preprocessing the data
 
@@ -15,7 +20,7 @@ par(mfrow=c(1,1))
 hist(totals, ylab="Total number of steps per day", xlab="Frequency", col="lightblue", n=10, main="Daily totals")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-2-1.png) 
+![plot of chunk unnamed-chunk-2](figure/unnamed-chunk-2-1.png) 
 
 The mean of daily total number of steps is 9354.2.
 
@@ -28,7 +33,7 @@ daily.profile <- tapply(activity$steps, activity$interval, function(values) mean
 plot(daily.profile, type="l", xlab="Time of day in 5 minute units", ylab="Average number of steps")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
+![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
 
 The time of day at which the maximum number of steps occurred (on average) was the 104th 5 minute interval (out of 24*12). 
 
@@ -41,18 +46,6 @@ We choose to use the specialised function *impSeq* from the package *rrcovNA* to
 
 ```r
 library(rrcovNA)
-```
-
-```
-## Loading required package: rrcov
-## Loading required package: robustbase
-## Scalable Robust Estimators with High Breakdown Point (version 1.3-8)
-## 
-## Scalable Robust Estimators with High Breakdown Point for
-## Incomplete Data (version 0.4-7)
-```
-
-```r
 activity.imp <- data.frame(impSeq(data.frame(activity)))
 class(activity.imp)
 ```
@@ -67,7 +60,7 @@ par(mfrow=c(1,1))
 hist(totals.imp, ylab="Imputed total number of steps per day", xlab="Frequency", col="lightblue", n=10, main="Imputed daily totals")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
+![plot of chunk unnamed-chunk-4](figure/unnamed-chunk-4-1.png) 
 
 The mean daily total number of steps with imputed values is 10767.
 
@@ -96,5 +89,5 @@ panel.data =cbind(panel.data, interval= activity$interval[1:(length(weekend.prof
 xyplot(steps ~ interval | daytype, data = panel.data, layout = c(1, 2), type="l", xlab="Interval", ylab="Number of steps")
 ```
 
-![](PA1_template_files/figure-html/unnamed-chunk-5-1.png) 
+![plot of chunk unnamed-chunk-5](figure/unnamed-chunk-5-1.png) 
 
